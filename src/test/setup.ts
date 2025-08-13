@@ -116,4 +116,20 @@ beforeAll(() => {
       now: () => Date.now(),
     } as Performance;
   }
+
+  // DragEventのモック
+  (global as any).DragEvent = class DragEvent extends Event {
+    dataTransfer: any;
+    
+    constructor(type: string, eventInitDict: any = {}) {
+      super(type, eventInitDict);
+      this.dataTransfer = eventInitDict.dataTransfer || {
+        files: [],
+        items: [],
+        types: [],
+        effectAllowed: 'uninitialized',
+        dropEffect: 'none',
+      };
+    }
+  };
 });
