@@ -14,9 +14,10 @@ interface MetadataDisplayProps {
   loading?: boolean;
   error?: Error | null;
   className?: string;
+  onNewFileSelect?: () => void;
 }
 
-export function MetadataDisplay({ metadata, file, loading = false, error = null, className = "" }: MetadataDisplayProps) {
+export function MetadataDisplay({ metadata, file, loading = false, error = null, className = "", onNewFileSelect }: MetadataDisplayProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string>('');
 
@@ -70,7 +71,7 @@ export function MetadataDisplay({ metadata, file, loading = false, error = null,
         <div className="col-span-full">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
-              <BasicInfoCard basicInfo={metadata.basicInfo} />
+              <BasicInfoCard basicInfo={metadata.basicInfo} onNewFileSelect={onNewFileSelect} />
             </div>
             {file && (
               <div className="flex-shrink-0">
@@ -128,7 +129,7 @@ export function MetadataDisplay({ metadata, file, loading = false, error = null,
 
       {/* モバイルレイアウト用の縦スタック (画面幅が狭い場合) */}
       <div className="flex flex-col space-y-4 lg:hidden">
-        <BasicInfoCard basicInfo={metadata.basicInfo} />
+        <BasicInfoCard basicInfo={metadata.basicInfo} onNewFileSelect={onNewFileSelect} />
         {file && (
           <div className="border rounded-lg p-4 bg-white shadow">
             <h2 className="text-lg font-semibold mb-4">プレビュー</h2>

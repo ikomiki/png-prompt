@@ -14,7 +14,8 @@
       "mcp__serena__think_about_whether_you_are_done",
       "Bash(npm run dev:*)",
       "Bash(npm run lint)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "mcp__serena__search_for_pattern"
     ],
     "deny": []
   }

@@ -90,11 +90,11 @@ export function ImageModal({ isOpen, imageUrl, fileName, onClose }: ImageModalPr
             />
           </div>
         </div>
+      </div>
 
-        {/* キーボードヘルプ */}
-        <div className="absolute bottom-2 left-2 text-white text-sm opacity-75">
-          ESCキーで閉じる
-        </div>
+      {/* キーボードヘルプ */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm opacity-75">
+        ESCキーで閉じる
       </div>
     </div>
   );

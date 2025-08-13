@@ -22,6 +22,8 @@ export interface FileUploaderProps {
   disabled?: boolean;
   /** 追加のCSSクラス */
   className?: string;
+  /** リセットトリガー */
+  resetTrigger?: number;
 }
 
 export function FileUploader({
@@ -31,6 +33,7 @@ export function FileUploader({
   maxFileSize = 100 * 1024 * 1024, // 100MB
   disabled = false,
   className,
+  resetTrigger = 0,
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -44,6 +47,16 @@ export function FileUploader({
       isMountedRef.current = false;
     };
   }, []);
+
+  // リセットトリガーが変化したときに内部状態をリセット
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      setIsValidating(false);
+      setCurrentError(null);
+      setIsDragging(false);
+      isMountedRef.current = true;
+    }
+  }, [resetTrigger]);
 
   const validateAndProcessFile = useCallback(
     async (file: File) => {

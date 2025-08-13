@@ -48,6 +48,7 @@ export default function MainPage({ initialState = AppState.IDLE, debugMode = fal
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<PngMetadata | null>(null);
   const [error, setError] = useState<AppError | null>(null);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const handleFileSelect = useCallback(async (file: File) => {
     setSelectedFile(file);
@@ -166,13 +167,39 @@ export default function MainPage({ initialState = AppState.IDLE, debugMode = fal
     }
   }, [selectedFile]);
 
+  const handleNewFileSelect = useCallback(() => {
+    setAppState(AppState.IDLE);
+    setSelectedFile(null);
+    setMetadata(null);
+    setError(null);
+    setResetTrigger(prev => prev + 1);
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header role="banner" className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">PNG メタデータ表示</h1>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">PNG メタデータ表示</h1>
+              {selectedFile && (
+                <p className="text-sm text-gray-600 mt-1">
+                  現在のファイル: {selectedFile.name}
+                </p>
+              )}
+            </div>
+            {selectedFile && appState === AppState.DISPLAYING_RESULTS && (
+              <button
+                onClick={handleNewFileSelect}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                aria-label="新しいファイルを選択"
+              >
+                別のファイルを選択
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -198,6 +225,7 @@ export default function MainPage({ initialState = AppState.IDLE, debugMode = fal
             <FileUploader
               onFileSelect={handleFileSelect}
               onError={handleError}
+              resetTrigger={resetTrigger}
             />
             {appState === AppState.FILE_SELECTED && selectedFile && (
               <div data-testid="file-selected-indicator" className="mt-4 p-4 bg-blue-100 rounded">
@@ -232,7 +260,7 @@ export default function MainPage({ initialState = AppState.IDLE, debugMode = fal
 
         {(appState === AppState.DISPLAYING_RESULTS || appState === AppState.EXPORTING) && metadata && (
           <div>
-            <MetadataDisplay metadata={metadata} file={selectedFile} />
+            <MetadataDisplay metadata={metadata} file={selectedFile} onNewFileSelect={handleNewFileSelect} />
             <div className="mt-6">
               <ExportButton 
                 metadata={metadata} 

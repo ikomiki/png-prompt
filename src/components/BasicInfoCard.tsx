@@ -11,6 +11,7 @@ interface BasicInfoCardProps {
   basicInfo: PngBasicInfo;
   collapsed?: boolean;
   onToggleCollapse?: (collapsed: boolean) => void;
+  onNewFileSelect?: () => void;
 }
 
 function formatFileSize(bytes: number): string {
@@ -32,7 +33,7 @@ function getColorTypeDescription(colorType: PngColorType, bitDepth: number): str
   return `${bitDepth}-bit ${colorTypeName}`;
 }
 
-export function BasicInfoCard({ basicInfo, collapsed = false, onToggleCollapse }: BasicInfoCardProps) {
+export function BasicInfoCard({ basicInfo, collapsed = false, onToggleCollapse, onNewFileSelect }: BasicInfoCardProps) {
   const handleToggle = () => {
     onToggleCollapse?.(!collapsed);
   };
@@ -41,13 +42,24 @@ export function BasicInfoCard({ basicInfo, collapsed = false, onToggleCollapse }
     <div role="region" aria-labelledby="basic-info-title" className="border rounded-lg p-4 bg-white shadow">
       <div className="flex items-center justify-between mb-4">
         <h2 id="basic-info-title" className="text-lg font-semibold">基本情報</h2>
-        <button
-          onClick={handleToggle}
-          aria-label={`基本情報を${collapsed ? '展開' : '折りたたみ'}`}
-          className="p-1 rounded hover:bg-gray-100"
-        >
-          {collapsed ? '▼' : '▲'}
-        </button>
+        <div className="flex items-center gap-2">
+          {onNewFileSelect && (
+            <button
+              onClick={onNewFileSelect}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              aria-label="新しいファイルを選択"
+            >
+              新しいファイル
+            </button>
+          )}
+          <button
+            onClick={handleToggle}
+            aria-label={`基本情報を${collapsed ? '展開' : '折りたたみ'}`}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            {collapsed ? '▼' : '▲'}
+          </button>
+        </div>
       </div>
       
       <div className="space-y-3">
