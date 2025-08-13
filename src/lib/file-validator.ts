@@ -2,7 +2,7 @@ import {
   ErrorType,
   FileValidationResult,
   FileValidationOptions,
-} from "@/types";
+} from "@/types/png-metadata";
 import { createAppError } from "./utils";
 
 /**
@@ -82,6 +82,110 @@ export function verifyPngSignature(buffer: ArrayBuffer): boolean {
   }
 
   return true;
+}
+
+/**
+ * IHDRチャンクから基本情報を抽出
+ */
+export function extractIHDRInfo(buffer: ArrayBuffer) {
+  const dataView = new DataView(buffer);
+  
+  // PNG signature (8 bytes) をスキップ
+  let offset = 8;
+  
+  // 最初のチャンク（IHDR）を読み取り
+  const ihdrLength = dataView.getUint32(offset);
+  offset += 4;
+  
+  // チャンクタイプを確認 (IHDR = 0x49484452)
+  const chunkType = dataView.getUint32(offset);
+  if (chunkType !== 0x49484452) {
+    throw new Error('Invalid PNG: First chunk is not IHDR');
+  }
+  offset += 4;
+  
+  // IHDR データを読み取り
+  const width = dataView.getUint32(offset);
+  offset += 4;
+  const height = dataView.getUint32(offset);
+  offset += 4;
+  const bitDepth = dataView.getUint8(offset);
+  offset += 1;
+  const colorType = dataView.getUint8(offset);
+  offset += 1;
+  const compressionMethod = dataView.getUint8(offset);
+  offset += 1;
+  const filterMethod = dataView.getUint8(offset);
+  offset += 1;
+  const interlaceMethod = dataView.getUint8(offset);
+  
+  return {
+    width,
+    height,
+    bitDepth,
+    colorType,
+    compressionMethod,
+    filterMethod,
+    interlaceMethod
+  };
+}
+
+/**
+ * PNGファイルから基本的なチャンク情報を抽出
+ */
+export function extractBasicPngInfo(buffer: ArrayBuffer) {
+  const dataView = new DataView(buffer);
+  let offset = 8; // PNG signatureをスキップ
+  
+  const ihdrInfo = extractIHDRInfo(buffer);
+  const textMetadata: Array<{keyword: string, text: string}> = [];
+  const otherChunks: Array<{type: string, size: number}> = [];
+  
+  // 最初のIHDRチャンクをスキップ
+  const ihdrLength = dataView.getUint32(offset);
+  offset += 4 + 4 + ihdrLength + 4; // length + type + data + crc
+  
+  // 他のチャンクを読み取り
+  while (offset < buffer.byteLength - 12) { // 少なくともIENDチャンクが必要
+    try {
+      const length = dataView.getUint32(offset);
+      offset += 4;
+      
+      // チャンクタイプを文字列として読み取り
+      const typeBytes = new Uint8Array(buffer, offset, 4);
+      const type = String.fromCharCode(...typeBytes);
+      offset += 4;
+      
+      if (type === 'IEND') {
+        break; // ファイル終端
+      }
+      
+      // tEXtチャンクの場合、テキストメタデータを抽出
+      if (type === 'tEXt' && length > 0) {
+        const textData = new Uint8Array(buffer, offset, length);
+        const nullIndex = textData.findIndex(byte => byte === 0);
+        if (nullIndex !== -1) {
+          const keyword = String.fromCharCode(...textData.subarray(0, nullIndex));
+          const text = String.fromCharCode(...textData.subarray(nullIndex + 1));
+          textMetadata.push({ keyword, text });
+        }
+      } else {
+        // その他のチャンク情報を記録
+        otherChunks.push({ type, size: length });
+      }
+      
+      offset += length + 4; // data + crc
+    } catch (e) {
+      // チャンク読み取りエラーの場合は終了
+      break;
+    }
+  }
+  
+  return {
+    basicInfo: ihdrInfo,
+    textMetadata,
+    otherChunks
+  };
 }
 
 /**

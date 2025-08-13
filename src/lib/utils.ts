@@ -7,7 +7,7 @@ import {
   PngUnitSpecifier,
   COLOR_TYPE_NAMES,
   UNIT_NAMES,
-} from "@/types";
+} from "@/types/png-metadata";
 
 // ==================== エラー関連ユーティリティ ====================
 
@@ -112,6 +112,37 @@ export function getUnitName(unitSpecifier: PngUnitSpecifier): string {
 }
 
 /**
+ * PNG圧縮方式の日本語名を取得
+ */
+export function getCompressionMethodName(compressionMethod: number): string {
+  const compressionMethods: Record<number, string> = {
+    0: "Deflate (標準)",
+  };
+  return compressionMethods[compressionMethod] ?? `不明 (${compressionMethod})`;
+}
+
+/**
+ * PNGフィルター方式の日本語名を取得
+ */
+export function getFilterMethodName(filterMethod: number): string {
+  const filterMethods: Record<number, string> = {
+    0: "適応フィルター (標準)",
+  };
+  return filterMethods[filterMethod] ?? `不明 (${filterMethod})`;
+}
+
+/**
+ * PNGインターレース方式の日本語名を取得
+ */
+export function getInterlaceMethodName(interlaceMethod: number): string {
+  const interlaceMethods: Record<number, string> = {
+    0: "なし (順次スキャン)",
+    1: "Adam7インターレース",
+  };
+  return interlaceMethods[interlaceMethod] ?? `不明 (${interlaceMethod})`;
+}
+
+/**
  * ピクセル密度からDPIを計算
  */
 export function calculateDPI(
@@ -138,7 +169,7 @@ export function getChannelCount(colorType: PngColorType): number {
       return 1;
     case PngColorType.GRAYSCALE_ALPHA:
       return 2;
-    case PngColorType.RGB_ALPHA:
+    case PngColorType.RGBA:
       return 4;
     default:
       return 0;

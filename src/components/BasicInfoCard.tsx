@@ -1,5 +1,11 @@
 import React from "react";
 import { PngBasicInfo, PngColorType } from "../types/png-metadata";
+import { 
+  getColorTypeName, 
+  getCompressionMethodName, 
+  getFilterMethodName, 
+  getInterlaceMethodName 
+} from "../lib/utils";
 
 interface BasicInfoCardProps {
   basicInfo: PngBasicInfo;
@@ -22,20 +28,8 @@ function formatFileSize(bytes: number): string {
 }
 
 function getColorTypeDescription(colorType: PngColorType, bitDepth: number): string {
-  switch (colorType) {
-    case PngColorType.GRAYSCALE:
-      return `${bitDepth}-bit Grayscale`;
-    case PngColorType.RGB:
-      return `${bitDepth}-bit RGB`;
-    case PngColorType.PALETTE:
-      return `${bitDepth}-bit Palette`;
-    case PngColorType.GRAYSCALE_ALPHA:
-      return `${bitDepth}-bit Grayscale with Alpha`;
-    case PngColorType.RGBA:
-      return `${bitDepth}-bit RGBA`;
-    default:
-      return `${bitDepth}-bit Unknown`;
-  }
+  const colorTypeName = getColorTypeName(colorType);
+  return `${bitDepth}-bit ${colorTypeName}`;
 }
 
 export function BasicInfoCard({ basicInfo, collapsed = false, onToggleCollapse }: BasicInfoCardProps) {
@@ -81,15 +75,15 @@ export function BasicInfoCard({ basicInfo, collapsed = false, onToggleCollapse }
           <div className="mt-4 pt-4 border-t space-y-2 text-sm text-gray-600">
             <div>
               <span className="font-medium">圧縮方式: </span>
-              <span>{basicInfo.compressionMethod}</span>
+              <span>{getCompressionMethodName(basicInfo.compressionMethod)}</span>
             </div>
             <div>
               <span className="font-medium">フィルター方式: </span>
-              <span>{basicInfo.filterMethod}</span>
+              <span>{getFilterMethodName(basicInfo.filterMethod)}</span>
             </div>
             <div>
               <span className="font-medium">インターレース: </span>
-              <span>{basicInfo.interlaceMethod}</span>
+              <span>{getInterlaceMethodName(basicInfo.interlaceMethod)}</span>
             </div>
           </div>
         )}

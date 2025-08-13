@@ -25,6 +25,7 @@ function truncateText(text: string, maxLength: number = 200): { truncated: strin
 
 export function TextMetadataCard({ textMetadata, collapsed = false, onToggleCollapse }: TextMetadataCardProps) {
   const [expandedTexts, setExpandedTexts] = useState<Set<number>>(new Set());
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleToggle = () => {
     onToggleCollapse?.(!collapsed);
@@ -38,6 +39,32 @@ export function TextMetadataCard({ textMetadata, collapsed = false, onToggleColl
       newExpanded.add(index);
     }
     setExpandedTexts(newExpanded);
+  };
+
+  const copyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      // コピー成功表示を2秒後にリセット
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error('クリップボードへのコピーに失敗しました:', err);
+      // フォールバック: 古いブラウザ対応
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+      } catch (fallbackErr) {
+        console.error('フォールバック方法でもコピーに失敗しました:', fallbackErr);
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    }
   };
 
   if (textMetadata.length === 0) {
@@ -84,7 +111,31 @@ export function TextMetadataCard({ textMetadata, collapsed = false, onToggleColl
                     <td className="py-2 pr-4 font-medium align-top">{item.keyword}</td>
                     <td className="py-2">
                       <div className="space-y-1">
-                        <div>{formattedText}</div>
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1">{formattedText}</div>
+                          <button
+                            onClick={() => copyToClipboard(item.text, index)}
+                            className={`flex-shrink-0 p-1 rounded transition-colors ${
+                              copiedIndex === index 
+                                ? 'text-green-600 bg-green-100' 
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                            }`}
+                            title="クリップボードにコピー"
+                            aria-label={`${item.keyword}の内容をクリップボードにコピー`}
+                          >
+                            {copiedIndex === index ? (
+                              // コピー完了アイコン (チェックマーク)
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              // コピーアイコン
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                         
                         {isTruncated && (
                           <button
@@ -108,6 +159,12 @@ export function TextMetadataCard({ textMetadata, collapsed = false, onToggleColl
                             <span className="bg-green-100 px-2 py-1 rounded">翻訳: {item.translatedKeyword}</span>
                           )}
                         </div>
+                        
+                        {copiedIndex === index && (
+                          <div className="text-xs text-green-600 animate-fade-in">
+                            📋 クリップボードにコピーしました
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { AppError } from "@/types";
+import { AppError } from "@/types/png-metadata";
 import { validatePngFile } from "@/lib/file-validator";
 import { formatFileSize } from "@/lib/utils";
 import { FileSelectButton } from "./FileSelectButton";
@@ -34,29 +34,31 @@ export function FileUploader({
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  
   const [currentError, setCurrentError] = useState<AppError | null>(null);
+  const isMountedRef = useRef(true);
+  
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const validateAndProcessFile = useCallback(
     async (file: File) => {
-      console.log('FileUploader: Starting validation for:', file.name, file.type);
       setIsValidating(true);
-      setSelectedFile(null);
-      setCurrentError(null); // エラー状態をクリア
+      setCurrentError(null);
 
       try {
         const validationResult = await validatePngFile(file, {
           maxFileSize,
+          checkPngSignature: true,
         });
 
-        console.log('FileUploader: Validation result:', validationResult);
-
         if (validationResult.isValid) {
-          console.log('FileUploader: File is valid, calling onFileSelect');
-          setSelectedFile(file);
           onFileSelect(file);
         } else if (validationResult.error) {
-          console.log('FileUploader: Validation error:', validationResult.error);
           setCurrentError(validationResult.error);
           onError(validationResult.error);
         }
@@ -69,7 +71,11 @@ export function FileUploader({
         setCurrentError(errorObj);
         onError(errorObj);
       } finally {
-        setIsValidating(false);
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setIsValidating(false);
+          }
+        }, 0);
       }
     },
     [maxFileSize, onFileSelect, onError]
@@ -97,11 +103,6 @@ export function FileUploader({
     setIsDragging(dragging);
   }, []);
 
-  // ファイルサイズ表示の最適化
-  const formattedFileSize = useMemo(
-    () => selectedFile ? formatFileSize(selectedFile.size) : null,
-    [selectedFile]
-  );
 
   // 最大ファイルサイズ表示の最適化
   const formattedMaxSize = useMemo(
@@ -121,7 +122,6 @@ export function FileUploader({
         className="sr-only"
       >
         {isValidating && "ファイルを検証中です"}
-        {selectedFile && `${selectedFile.name}が選択されました`}
         {currentError && `エラー: ${currentError.message}`}
       </div>
       <DropZone
@@ -155,18 +155,6 @@ export function FileUploader({
                 textPosition="bottom"
                 centered
               />
-            </div>
-          ) : selectedFile ? (
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-900">
-                選択されたファイル:
-              </div>
-              <div className="text-lg font-semibold text-primary">
-                {selectedFile.name}
-              </div>
-              <div className="text-sm text-gray-600">
-                {formattedFileSize?.formatted}
-              </div>
             </div>
           ) : (
             <>
