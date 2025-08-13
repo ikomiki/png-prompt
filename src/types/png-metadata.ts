@@ -34,7 +34,7 @@ export enum PngColorType {
   RGB = 2,
   PALETTE = 3,
   GRAYSCALE_ALPHA = 4,
-  RGB_ALPHA = 6,
+  RGBA = 6,
 }
 
 /**
@@ -45,7 +45,7 @@ export const COLOR_TYPE_NAMES: Record<PngColorType, string> = {
   [PngColorType.RGB]: "RGB",
   [PngColorType.PALETTE]: "パレット",
   [PngColorType.GRAYSCALE_ALPHA]: "グレースケール + Alpha",
-  [PngColorType.RGB_ALPHA]: "RGBA",
+  [PngColorType.RGBA]: "RGBA",
 };
 
 // ==================== メタデータ型定義 ====================
