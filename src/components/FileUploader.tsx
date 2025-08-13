@@ -39,6 +39,7 @@ export function FileUploader({
 
   const validateAndProcessFile = useCallback(
     async (file: File) => {
+      console.log('FileUploader: Starting validation for:', file.name, file.type);
       setIsValidating(true);
       setSelectedFile(null);
       setCurrentError(null); // エラー状態をクリア
@@ -48,10 +49,14 @@ export function FileUploader({
           maxFileSize,
         });
 
-        if (validationResult.valid) {
+        console.log('FileUploader: Validation result:', validationResult);
+
+        if (validationResult.isValid) {
+          console.log('FileUploader: File is valid, calling onFileSelect');
           setSelectedFile(file);
           onFileSelect(file);
         } else if (validationResult.error) {
+          console.log('FileUploader: Validation error:', validationResult.error);
           setCurrentError(validationResult.error);
           onError(validationResult.error);
         }

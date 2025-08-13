@@ -156,6 +156,7 @@ export enum AppState {
   LOADING = "loading",
   PARSING = "parsing",
   DISPLAYING_RESULTS = "displaying_results",
+  EXPORTING = "exporting",
   VALIDATION_ERROR = "validation_error",
   PARSING_ERROR = "parsing_error",
 }
