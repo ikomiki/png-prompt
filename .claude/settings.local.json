@@ -5,7 +5,10 @@
       "Bash(pnpm run:*)",
       "Bash(mkdir:*)",
       "Bash(pnpm install:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npm test:*)",
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview"
     ],
     "deny": []
   }

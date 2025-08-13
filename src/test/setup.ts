@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // テスト環境のセットアップ
 import { beforeAll } from "vitest";
+import "@testing-library/jest-dom";
 
 // Node.js環境でのブラウザAPIのモック
 beforeAll(() => {
