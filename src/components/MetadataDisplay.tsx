@@ -1,19 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { PngMetadata } from "../types/png-metadata";
 import { BasicInfoCard } from "./BasicInfoCard";
 import { TextMetadataCard } from "./TextMetadataCard";
 import { TimestampCard } from "./TimestampCard";
 import { PhysicalDimensionsCard } from "./PhysicalDimensionsCard";
 import { OtherChunksCard } from "./OtherChunksCard";
+import { ImageThumbnail } from "./ImageThumbnail";
+import { ImageModal } from "./ImageModal";
 
 interface MetadataDisplayProps {
   metadata: PngMetadata;
+  file?: File;
   loading?: boolean;
   error?: Error | null;
   className?: string;
 }
 
-export function MetadataDisplay({ metadata, loading = false, error = null, className = "" }: MetadataDisplayProps) {
+export function MetadataDisplay({ metadata, file, loading = false, error = null, className = "" }: MetadataDisplayProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string>('');
+
+  const handleThumbnailClick = (imageUrl: string) => {
+    setModalImageUrl(imageUrl);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setModalImageUrl('');
+  };
   if (loading) {
     return (
       <div className={`flex items-center justify-center p-8 ${className}`}>
@@ -51,9 +66,25 @@ export function MetadataDisplay({ metadata, loading = false, error = null, class
     >
       {/* デスクトップレイアウト用のグリッド */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {/* 基本情報は常に最上部に配置 */}
+        {/* 基本情報とサムネイル */}
         <div className="col-span-full">
-          <BasicInfoCard basicInfo={metadata.basicInfo} />
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <BasicInfoCard basicInfo={metadata.basicInfo} />
+            </div>
+            {file && (
+              <div className="flex-shrink-0">
+                <div className="border rounded-lg p-4 bg-white shadow">
+                  <h2 className="text-lg font-semibold mb-4">プレビュー</h2>
+                  <ImageThumbnail 
+                    file={file}
+                    onImageClick={handleThumbnailClick}
+                    size={150}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* テキストメタデータ */}
@@ -98,6 +129,18 @@ export function MetadataDisplay({ metadata, loading = false, error = null, class
       {/* モバイルレイアウト用の縦スタック (画面幅が狭い場合) */}
       <div className="flex flex-col space-y-4 lg:hidden">
         <BasicInfoCard basicInfo={metadata.basicInfo} />
+        {file && (
+          <div className="border rounded-lg p-4 bg-white shadow">
+            <h2 className="text-lg font-semibold mb-4">プレビュー</h2>
+            <div className="flex justify-center">
+              <ImageThumbnail 
+                file={file}
+                onImageClick={handleThumbnailClick}
+                size={120}
+              />
+            </div>
+          </div>
+        )}
         <TextMetadataCard textMetadata={metadata.textMetadata || []} />
         
         {metadata.timestamp ? (
@@ -124,6 +167,16 @@ export function MetadataDisplay({ metadata, loading = false, error = null, class
         
         <OtherChunksCard chunks={metadata.otherChunks || []} />
       </div>
+
+      {/* モーダル */}
+      {file && (
+        <ImageModal
+          isOpen={isModalOpen}
+          imageUrl={modalImageUrl}
+          fileName={file.name}
+          onClose={handleModalClose}
+        />
+      )}
     </div>
   );
 }

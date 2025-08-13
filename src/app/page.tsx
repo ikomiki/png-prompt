@@ -232,7 +232,7 @@ export default function MainPage({ initialState = AppState.IDLE, debugMode = fal
 
         {(appState === AppState.DISPLAYING_RESULTS || appState === AppState.EXPORTING) && metadata && (
           <div>
-            <MetadataDisplay metadata={metadata} />
+            <MetadataDisplay metadata={metadata} file={selectedFile} />
             <div className="mt-6">
               <ExportButton 
                 metadata={metadata} 

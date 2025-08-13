@@ -64,7 +64,7 @@ export function FileUploader({
         }
       } catch (error) {
         const errorObj = {
-          type: "PARSE_ERROR" as any,
+          type: "PARSE_ERROR" as const,
           message: "ファイル検証中にエラーが発生しました",
           details: error instanceof Error ? error.message : String(error),
         };
