@@ -4,6 +4,9 @@ import {
   PngParseResult,
   PngBasicInfo,
   PngColorType,
+  PngTextMetadata,
+  PngTimestamp,
+  PngPhysicalDimensions,
   ErrorType,
   AppError,
 } from "@/types";
@@ -353,11 +356,38 @@ export async function parsePng(
           critical: isChunkCritical(chunk.type),
         }));
 
+      // メタデータを抽出
+      const textMetadata: PngTextMetadata[] = [];
+      let timestamp: PngTimestamp | undefined;
+      let physicalDimensions: PngPhysicalDimensions | undefined;
+
+      // メタデータ抽出器をインポート（動的インポートでサイクル依存を回避）
+      const { extractMetadataFromChunk } = await import("./metadata-extractor");
+
+      for (const chunk of chunks) {
+        const metadata = extractMetadataFromChunk(chunk);
+        
+        if (metadata) {
+          if ("keyword" in metadata) {
+            // テキストメタデータ
+            textMetadata.push(metadata);
+          } else if ("year" in metadata) {
+            // タイムスタンプ
+            timestamp = metadata;
+          } else if ("pixelsPerUnitX" in metadata) {
+            // 物理的寸法
+            physicalDimensions = metadata;
+          }
+        }
+      }
+
       return {
         success: true,
         metadata: {
           basicInfo,
-          textMetadata: [], // 次のタスクで実装
+          textMetadata,
+          timestamp,
+          physicalDimensions,
           otherChunks,
         },
       };
