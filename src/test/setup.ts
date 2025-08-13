@@ -19,9 +19,19 @@ beforeAll(() => {
     readAsArrayBuffer(file: Blob) {
       setTimeout(() => {
         this.readyState = 2;
-        this.result = new ArrayBuffer((file as any).size || 0);
-        if (this.onload) {
-          this.onload({} as ProgressEvent<FileReader>);
+        // Fileオブジェクトの実際のデータを返すように修正
+        if ((file as any).arrayBuffer) {
+          (file as any).arrayBuffer().then((buffer: ArrayBuffer) => {
+            this.result = buffer;
+            if (this.onload) {
+              this.onload({} as ProgressEvent<FileReader>);
+            }
+          });
+        } else {
+          this.result = new ArrayBuffer((file as any).size || 0);
+          if (this.onload) {
+            this.onload({} as ProgressEvent<FileReader>);
+          }
         }
       }, 0);
     }
@@ -38,24 +48,52 @@ beforeAll(() => {
     type: string;
     lastModified: number;
     webkitRelativePath = "";
+    private _buffer: ArrayBuffer;
 
     constructor(bits: BlobPart[], name: string, options: FilePropertyBag = {}) {
       this.name = name;
-      this.size = bits.reduce((acc, bit) => {
-        if (typeof bit === "string") return acc + bit.length;
-        if (bit instanceof ArrayBuffer) return acc + bit.byteLength;
-        return acc;
-      }, 0);
       this.type = options.type || "";
       this.lastModified = options.lastModified || Date.now();
+      
+      // bitsからArrayBufferを作成
+      let totalSize = 0;
+      const buffers: ArrayBuffer[] = [];
+      
+      for (const bit of bits) {
+        if (typeof bit === "string") {
+          const encoder = new TextEncoder();
+          const encoded = encoder.encode(bit);
+          buffers.push(encoded.buffer);
+          totalSize += encoded.byteLength;
+        } else if (bit instanceof ArrayBuffer) {
+          buffers.push(bit);
+          totalSize += bit.byteLength;
+        } else if (bit instanceof Uint8Array) {
+          const buffer = bit.buffer as ArrayBuffer;
+          buffers.push(buffer.slice(bit.byteOffset, bit.byteOffset + bit.byteLength));
+          totalSize += bit.byteLength;
+        }
+      }
+      
+      this.size = totalSize;
+      this._buffer = new ArrayBuffer(totalSize);
+      
+      if (buffers.length > 0) {
+        const view = new Uint8Array(this._buffer);
+        let offset = 0;
+        for (const buffer of buffers) {
+          view.set(new Uint8Array(buffer), offset);
+          offset += buffer.byteLength;
+        }
+      }
     }
 
     arrayBuffer() {
-      return Promise.resolve(new ArrayBuffer(this.size));
+      return Promise.resolve(this._buffer.slice(0));
     }
     
     bytes() {
-      return Promise.resolve(new Uint8Array(this.size));
+      return Promise.resolve(new Uint8Array(this._buffer));
     }
 
     slice() {
