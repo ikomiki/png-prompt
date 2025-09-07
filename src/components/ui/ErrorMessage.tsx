@@ -42,16 +42,12 @@ export function ErrorMessage({
     <div
       className={cn(
         "rounded-lg border p-4",
-        {
-          "border-red-200 bg-red-50": variant === "error",
-          "border-yellow-200 bg-yellow-50": variant === "warning",
-          "border-blue-200 bg-blue-50": variant === "info",
-        },
-        {
-          "text-sm": size === "sm",
-          "text-base": size === "md",
-          "text-lg": size === "lg",
-        },
+        variant === "error" && "border-red-200 bg-red-50",
+        variant === "warning" && "border-yellow-200 bg-yellow-50",
+        variant === "info" && "border-blue-200 bg-blue-50",
+        size === "sm" && "text-sm",
+        size === "md" && "text-base",
+        size === "lg" && "text-lg",
         className
       )}
     >
@@ -61,34 +57,28 @@ export function ErrorMessage({
             <ErrorIcon variant={variant} />
           </div>
         )}
-        
-        <div className="flex-1 min-w-0">
+
+        <div className="min-w-0 flex-1">
           <div
             className={cn(
               "font-medium",
-              {
-                "text-red-800": variant === "error",
-                "text-yellow-800": variant === "warning",
-                "text-blue-800": variant === "info",
-              }
+              variant === "error" && "text-red-800",
+              variant === "warning" && "text-yellow-800",
+              variant === "info" && "text-blue-800"
             )}
           >
             {message}
           </div>
-          
+
           {details && (
             <div
               className={cn(
                 "mt-1",
-                {
-                  "text-red-700": variant === "error",
-                  "text-yellow-700": variant === "warning",
-                  "text-blue-700": variant === "info",
-                },
-                {
-                  "text-xs": size === "sm",
-                  "text-sm": size === "md" || size === "lg",
-                }
+                variant === "error" && "text-red-700",
+                variant === "warning" && "text-yellow-700",
+                variant === "info" && "text-blue-700",
+                size === "sm" && "text-xs",
+                (size === "md" || size === "lg") && "text-sm"
               )}
             >
               {collapsible ? (
@@ -101,42 +91,40 @@ export function ErrorMessage({
                   </div>
                 </details>
               ) : (
-                <div className="whitespace-pre-wrap break-words">
-                  {details}
-                </div>
+                <div className="whitespace-pre-wrap break-words">{details}</div>
               )}
             </div>
           )}
-          
+
           {(onRetry || onClose) && (
             <div className="mt-3 flex gap-2">
               {onRetry && (
                 <button
                   onClick={onRetry}
                   className={cn(
-                    "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    {
-                      "bg-red-100 text-red-800 hover:bg-red-200": variant === "error",
-                      "bg-yellow-100 text-yellow-800 hover:bg-yellow-200": variant === "warning",
-                      "bg-blue-100 text-blue-800 hover:bg-blue-200": variant === "info",
-                    }
+                    "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    variant === "error" &&
+                      "bg-red-100 text-red-800 hover:bg-red-200",
+                    variant === "warning" &&
+                      "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+                    variant === "info" &&
+                      "bg-blue-100 text-blue-800 hover:bg-blue-200"
                   )}
                 >
                   <RefreshIcon className="mr-1.5 h-4 w-4" />
                   {retryText}
                 </button>
               )}
-              
+
               {onClose && (
                 <button
                   onClick={onClose}
                   className={cn(
-                    "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    {
-                      "text-red-700 hover:bg-red-100": variant === "error",
-                      "text-yellow-700 hover:bg-yellow-100": variant === "warning",
-                      "text-blue-700 hover:bg-blue-100": variant === "info",
-                    }
+                    "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    variant === "error" && "text-red-700 hover:bg-red-100",
+                    variant === "warning" &&
+                      "text-yellow-700 hover:bg-yellow-100",
+                    variant === "info" && "text-blue-700 hover:bg-blue-100"
                   )}
                 >
                   閉じる
@@ -145,17 +133,18 @@ export function ErrorMessage({
             </div>
           )}
         </div>
-        
+
         {onClose && (
           <button
             onClick={onClose}
             className={cn(
-              "flex-shrink-0 p-1 rounded-md transition-colors",
-              {
-                "text-red-400 hover:text-red-600 hover:bg-red-100": variant === "error",
-                "text-yellow-400 hover:text-yellow-600 hover:bg-yellow-100": variant === "warning",
-                "text-blue-400 hover:text-blue-600 hover:bg-blue-100": variant === "info",
-              }
+              "flex-shrink-0 rounded-md p-1 transition-colors",
+              variant === "error" &&
+                "text-red-400 hover:bg-red-100 hover:text-red-600",
+              variant === "warning" &&
+                "text-yellow-400 hover:bg-yellow-100 hover:text-yellow-600",
+              variant === "info" &&
+                "text-blue-400 hover:bg-blue-100 hover:text-blue-600"
             )}
           >
             <XIcon className="h-5 w-5" />
@@ -189,7 +178,7 @@ function ErrorIcon({ variant }: ErrorIconProps) {
       </svg>
     );
   }
-  
+
   if (variant === "warning") {
     return (
       <svg
@@ -208,7 +197,7 @@ function ErrorIcon({ variant }: ErrorIconProps) {
       </svg>
     );
   }
-  
+
   return (
     <svg
       className="h-5 w-5 text-blue-400"

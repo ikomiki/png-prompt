@@ -1,12 +1,17 @@
-import { describe, test, expect, beforeEach } from "vitest";
-import { 
-  exportToJSON, 
-  exportToCSV, 
+import { describe, test, expect, beforeEach, vi } from "vitest";
+import {
+  exportToJSON,
+  exportToCSV,
   exportToText,
   downloadFile,
-  generateFilename 
+  generateFilename,
 } from "../export-utils";
-import { PngMetadata, PngColorType, PngUnitSpecifier, ExportFormat } from "../../types/png-metadata";
+import {
+  PngMetadata,
+  PngColorType,
+  PngUnitSpecifier,
+  ExportFormat,
+} from "../../types/png-metadata";
 
 describe("Export Utils", () => {
   const mockMetadata: PngMetadata = {
@@ -72,7 +77,7 @@ describe("Export Utils", () => {
     test("should export complete metadata as JSON", () => {
       const result = exportToJSON(mockMetadata);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.basicInfo.fileName).toBe("test.png");
       expect(parsed.basicInfo.fileSize).toBe(1234567);
       expect(parsed.textMetadata).toHaveLength(3);
@@ -85,10 +90,10 @@ describe("Export Utils", () => {
         textMetadata: [],
         otherChunks: [],
       };
-      
+
       const result = exportToJSON(partialMetadata);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.basicInfo).toBeDefined();
       expect(parsed.textMetadata).toEqual([]);
       expect(parsed.timestamp).toBeUndefined();
@@ -97,14 +102,16 @@ describe("Export Utils", () => {
     test("should format dates as ISO 8601", () => {
       const result = exportToJSON(mockMetadata);
       const parsed = JSON.parse(result);
-      
-      expect(parsed.timestamp.iso8601).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+
+      expect(parsed.timestamp.iso8601).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      );
     });
 
     test("should include export metadata", () => {
       const result = exportToJSON(mockMetadata);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.exportInfo).toBeDefined();
       expect(parsed.exportInfo.format).toBe("json");
       expect(parsed.exportInfo.version).toBe("1.0");
@@ -117,10 +124,10 @@ describe("Export Utils", () => {
         timestamp: undefined,
         physicalDimensions: undefined,
       };
-      
+
       const result = exportToJSON(metadataWithNulls);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.timestamp).toBeUndefined();
       expect(parsed.physicalDimensions).toBeUndefined();
     });
@@ -128,23 +135,27 @@ describe("Export Utils", () => {
     test("should escape special characters", () => {
       const specialMetadata: PngMetadata = {
         ...mockMetadata,
-        textMetadata: [{
-          keyword: "Special",
-          text: 'Text with "quotes" and \n newlines',
-        }],
+        textMetadata: [
+          {
+            keyword: "Special",
+            text: 'Text with "quotes" and \n newlines',
+          },
+        ],
       };
-      
+
       const result = exportToJSON(specialMetadata);
       const parsed = JSON.parse(result);
-      
-      expect(parsed.textMetadata[0].text).toBe('Text with "quotes" and \n newlines');
+
+      expect(parsed.textMetadata[0].text).toBe(
+        'Text with "quotes" and \n newlines'
+      );
     });
   });
 
   describe("CSV Export", () => {
     test("should generate valid CSV format", () => {
       const result = exportToCSV(mockMetadata);
-      
+
       expect(result).toContain("セクション,項目,値,単位,説明");
       expect(result).toContain("基本情報,ファイル名,test.png,,");
       expect(result).toContain("テキスト,Title,Test Image,,tEXt chunk");
@@ -152,13 +163,13 @@ describe("Export Utils", () => {
 
     test("should include UTF-8 BOM", () => {
       const result = exportToCSV(mockMetadata);
-      
+
       expect(result.startsWith("\uFEFF")).toBe(true);
     });
 
     test("should handle Japanese characters", () => {
       const result = exportToCSV(mockMetadata);
-      
+
       expect(result).toContain("テスト用画像");
       expect(result).toContain("コメント");
     });
@@ -166,21 +177,23 @@ describe("Export Utils", () => {
     test("should escape CSV special characters", () => {
       const csvSpecialMetadata: PngMetadata = {
         ...mockMetadata,
-        textMetadata: [{
-          keyword: "CSV,Test",
-          text: 'Text with "quotes", commas, and\nnewlines',
-        }],
+        textMetadata: [
+          {
+            keyword: "CSV,Test",
+            text: 'Text with "quotes", commas, and\nnewlines',
+          },
+        ],
       };
-      
+
       const result = exportToCSV(csvSpecialMetadata);
-      
+
       expect(result).toContain('"CSV,Test"');
       expect(result).toContain('"Text with ""quotes"", commas, and\nnewlines"');
     });
 
     test("should organize data by sections", () => {
       const result = exportToCSV(mockMetadata);
-      
+
       expect(result).toContain("基本情報,");
       expect(result).toContain("テキスト,");
       expect(result).toContain("日時,");
@@ -194,9 +207,9 @@ describe("Export Utils", () => {
         textMetadata: [],
         otherChunks: [],
       };
-      
+
       const result = exportToCSV(emptyMetadata);
-      
+
       expect(result).toContain("基本情報,");
       expect(result).not.toContain("テキスト,");
     });
@@ -205,7 +218,7 @@ describe("Export Utils", () => {
   describe("Text Export", () => {
     test("should generate readable text format", () => {
       const result = exportToText(mockMetadata);
-      
+
       expect(result).toContain("PNG メタデータレポート");
       expect(result).toContain("■ 基本情報");
       expect(result).toContain("ファイル名: test.png");
@@ -213,7 +226,7 @@ describe("Export Utils", () => {
 
     test("should include section headers", () => {
       const result = exportToText(mockMetadata);
-      
+
       expect(result).toContain("■ 基本情報");
       expect(result).toContain("■ テキストメタデータ");
       expect(result).toContain("■ 作成日時");
@@ -223,7 +236,7 @@ describe("Export Utils", () => {
 
     test("should format Japanese text properly", () => {
       const result = exportToText(mockMetadata);
-      
+
       expect(result).toContain("テスト用画像");
       expect(result).toContain("2024年3月15日");
       expect(result).toContain("画像データ");
@@ -232,14 +245,16 @@ describe("Export Utils", () => {
     test("should handle multiline text", () => {
       const multilineMetadata: PngMetadata = {
         ...mockMetadata,
-        textMetadata: [{
-          keyword: "Description",
-          text: "Line 1\nLine 2\nLine 3",
-        }],
+        textMetadata: [
+          {
+            keyword: "Description",
+            text: "Line 1\nLine 2\nLine 3",
+          },
+        ],
       };
-      
+
       const result = exportToText(multilineMetadata);
-      
+
       expect(result).toContain("Line 1");
       expect(result).toContain("Line 2");
       expect(result).toContain("Line 3");
@@ -247,7 +262,7 @@ describe("Export Utils", () => {
 
     test("should include summary information", () => {
       const result = exportToText(mockMetadata);
-      
+
       expect(result).toContain("総チャンク数:");
       expect(result).toContain("合計データサイズ:");
     });
@@ -258,9 +273,9 @@ describe("Export Utils", () => {
         textMetadata: [],
         otherChunks: [],
       };
-      
+
       const result = exportToText(partialMetadata);
-      
+
       expect(result).toContain("■ 基本情報");
       expect(result).not.toContain("■ テキストメタデータ");
     });
@@ -270,7 +285,7 @@ describe("Export Utils", () => {
     // Mock URL.createObjectURL and URL.revokeObjectURL
     const mockCreateObjectURL = vi.fn();
     const mockRevokeObjectURL = vi.fn();
-    
+
     beforeEach(() => {
       global.URL.createObjectURL = mockCreateObjectURL;
       global.URL.revokeObjectURL = mockRevokeObjectURL;
@@ -281,9 +296,9 @@ describe("Export Utils", () => {
       const data = "test data";
       const filename = "test.json";
       const mimeType = "application/json";
-      
+
       downloadFile(data, filename, mimeType);
-      
+
       expect(mockCreateObjectURL).toHaveBeenCalledWith(
         expect.objectContaining({
           type: mimeType,
@@ -299,13 +314,19 @@ describe("Export Utils", () => {
         style: { display: "" },
         click: mockClick,
       };
-      
-      vi.spyOn(document, "createElement").mockReturnValue(mockLink as any);
-      vi.spyOn(document.body, "appendChild").mockImplementation(() => {});
-      vi.spyOn(document.body, "removeChild").mockImplementation(() => {});
-      
+
+      vi.spyOn(document, "createElement").mockReturnValue(
+        mockLink as unknown as HTMLAnchorElement
+      );
+      vi.spyOn(document.body, "appendChild").mockImplementation(
+        (node: Node) => node
+      );
+      vi.spyOn(document.body, "removeChild").mockImplementation(
+        (child: Node) => child
+      );
+
       downloadFile("data", "test-file.json", "application/json");
-      
+
       expect(mockLink.download).toBe("test-file.json");
     });
 
@@ -317,13 +338,19 @@ describe("Export Utils", () => {
         style: { display: "" },
         click: mockClick,
       };
-      
-      vi.spyOn(document, "createElement").mockReturnValue(mockLink as any);
-      vi.spyOn(document.body, "appendChild").mockImplementation(() => {});
-      vi.spyOn(document.body, "removeChild").mockImplementation(() => {});
-      
+
+      vi.spyOn(document, "createElement").mockReturnValue(
+        mockLink as unknown as HTMLAnchorElement
+      );
+      vi.spyOn(document.body, "appendChild").mockImplementation(
+        (node: Node) => node
+      );
+      vi.spyOn(document.body, "removeChild").mockImplementation(
+        (child: Node) => child
+      );
+
       downloadFile("data", "test.json", "application/json");
-      
+
       expect(mockClick).toHaveBeenCalled();
     });
 
@@ -335,16 +362,22 @@ describe("Export Utils", () => {
         style: { display: "" },
         click: mockClick,
       };
-      
-      vi.spyOn(document, "createElement").mockReturnValue(mockLink as any);
-      vi.spyOn(document.body, "appendChild").mockImplementation(() => {});
-      vi.spyOn(document.body, "removeChild").mockImplementation(() => {});
-      
+
+      vi.spyOn(document, "createElement").mockReturnValue(
+        mockLink as unknown as HTMLAnchorElement
+      );
+      vi.spyOn(document.body, "appendChild").mockImplementation(
+        (node: Node) => node
+      );
+      vi.spyOn(document.body, "removeChild").mockImplementation(
+        (child: Node) => child
+      );
+
       downloadFile("data", "test.json", "application/json");
-      
+
       // Wait for cleanup timeout
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       expect(mockRevokeObjectURL).toHaveBeenCalledWith("mock-blob-url");
     });
   });
@@ -352,7 +385,7 @@ describe("Export Utils", () => {
   describe("Filename Generation", () => {
     test("should generate filename with timestamp", () => {
       const result = generateFilename("metadata", ExportFormat.JSON);
-      
+
       expect(result).toMatch(/^metadata_\d{8}_\d{6}\.json$/);
     });
 
@@ -360,7 +393,7 @@ describe("Export Utils", () => {
       const jsonFilename = generateFilename("test", ExportFormat.JSON);
       const csvFilename = generateFilename("test", ExportFormat.CSV);
       const textFilename = generateFilename("test", ExportFormat.TEXT);
-      
+
       expect(jsonFilename.endsWith(".json")).toBe(true);
       expect(csvFilename.endsWith(".csv")).toBe(true);
       expect(textFilename.endsWith(".txt")).toBe(true);
@@ -368,7 +401,7 @@ describe("Export Utils", () => {
 
     test("should handle Japanese characters", () => {
       const result = generateFilename("メタデータ", ExportFormat.JSON);
-      
+
       expect(result).toContain("メタデータ");
       expect(result.endsWith(".json")).toBe(true);
     });

@@ -30,11 +30,9 @@ export function LoadingIndicator({
     <div
       className={cn(
         "flex items-center",
-        {
-          "justify-center": centered,
-          "flex-col gap-2": textPosition === "bottom",
-          "flex-row gap-3": textPosition === "right",
-        },
+        centered && "justify-center",
+        textPosition === "bottom" && "flex-col gap-2",
+        textPosition === "right" && "flex-row gap-3",
         className
       )}
     >
@@ -43,11 +41,9 @@ export function LoadingIndicator({
         <div
           className={cn(
             "text-sm font-medium",
-            {
-              "text-primary": color === "primary",
-              "text-gray-600": color === "secondary",
-              "text-white": color === "white",
-            }
+            color === "primary" && "text-primary",
+            color === "secondary" && "text-gray-600",
+            color === "white" && "text-white"
           )}
         >
           {text}
@@ -67,17 +63,13 @@ function Spinner({ size, color }: SpinnerProps) {
     <svg
       className={cn(
         "animate-spin",
-        {
-          "h-4 w-4": size === "sm",
-          "h-6 w-6": size === "md",
-          "h-8 w-8": size === "lg",
-          "h-12 w-12": size === "xl",
-        },
-        {
-          "text-primary": color === "primary",
-          "text-gray-600": color === "secondary",
-          "text-white": color === "white",
-        }
+        size === "sm" && "h-4 w-4",
+        size === "md" && "h-6 w-6",
+        size === "lg" && "h-8 w-8",
+        size === "xl" && "h-12 w-12",
+        color === "primary" && "text-primary",
+        color === "secondary" && "text-gray-600",
+        color === "white" && "text-white"
       )}
       fill="none"
       stroke="currentColor"

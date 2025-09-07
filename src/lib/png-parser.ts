@@ -37,7 +37,7 @@ let crcTable: number[] | null = null;
  */
 function makeCrcTable(): number[] {
   if (crcTable !== null) return crcTable;
-  
+
   crcTable = [];
   for (let n = 0; n < 256; n++) {
     let c = n;
@@ -55,7 +55,7 @@ function makeCrcTable(): number[] {
 function calculateCrc(data: Uint8Array, typeBytes: Uint8Array): number {
   const table = makeCrcTable();
   let crc = 0xffffffff;
-  
+
   // チャンクタイプをCRCに含める
   for (let i = 0; i < typeBytes.length; i++) {
     const value = table[(crc ^ typeBytes[i]!) & 0xff];
@@ -63,7 +63,7 @@ function calculateCrc(data: Uint8Array, typeBytes: Uint8Array): number {
       crc = value ^ (crc >>> 8);
     }
   }
-  
+
   // チャンクデータをCRCに含める
   for (let i = 0; i < data.length; i++) {
     const value = table[(crc ^ data[i]!) & 0xff];
@@ -71,7 +71,7 @@ function calculateCrc(data: Uint8Array, typeBytes: Uint8Array): number {
       crc = value ^ (crc >>> 8);
     }
   }
-  
+
   return crc ^ 0xffffffff;
 }
 
@@ -118,14 +118,18 @@ export function readChunk(
 
   // チャンクの長さを読み取り
   const length = readUint32BE(dataView, offset);
-  
+
   // チャンクサイズの妥当性チェック
   if (length > 0x7fffffff) {
     throw new Error("Invalid chunk length");
   }
 
   // チャンクタイプを読み取り
-  const typeBytes = new Uint8Array(dataView.buffer, dataView.byteOffset + offset + 4, 4);
+  const typeBytes = new Uint8Array(
+    dataView.buffer,
+    dataView.byteOffset + offset + 4,
+    4
+  );
   const type = chunkTypeToString(typeBytes);
 
   // チャンクデータを読み取り
@@ -134,7 +138,11 @@ export function readChunk(
     throw new Error("Unexpected end of file while reading chunk data");
   }
 
-  const data = new Uint8Array(dataView.buffer, dataView.byteOffset + dataOffset, length);
+  const data = new Uint8Array(
+    dataView.buffer,
+    dataView.byteOffset + dataOffset,
+    length
+  );
 
   // CRCを読み取り
   const crcOffset = dataOffset + length;
@@ -164,7 +172,11 @@ export function validateChunkCrc(chunk: PngChunk): boolean {
 /**
  * IHDRチャンクから基本情報を抽出
  */
-export function extractBasicInfo(ihdrChunk: PngChunk, fileName: string, fileSize: number): PngBasicInfo {
+export function extractBasicInfo(
+  ihdrChunk: PngChunk,
+  fileName: string,
+  fileSize: number
+): PngBasicInfo {
   if (ihdrChunk.type !== "IHDR") {
     throw new Error("Expected IHDR chunk");
   }
@@ -173,7 +185,11 @@ export function extractBasicInfo(ihdrChunk: PngChunk, fileName: string, fileSize
     throw new Error("Invalid IHDR chunk size");
   }
 
-  const view = new DataView(ihdrChunk.data.buffer, ihdrChunk.data.byteOffset, ihdrChunk.data.byteLength);
+  const view = new DataView(
+    ihdrChunk.data.buffer,
+    ihdrChunk.data.byteOffset,
+    ihdrChunk.data.byteLength
+  );
 
   const width = readUint32BE(view, 0);
   const height = readUint32BE(view, 4);
@@ -201,8 +217,14 @@ export function extractBasicInfo(ihdrChunk: PngChunk, fileName: string, fileSize
     throw new Error("Invalid bit depth for palette color type");
   }
 
-  if ([PngColorType.RGB, PngColorType.GRAYSCALE_ALPHA, PngColorType.RGB_ALPHA].includes(colorType) && 
-      ![8, 16].includes(bitDepth)) {
+  if (
+    [
+      PngColorType.RGB,
+      PngColorType.GRAYSCALE_ALPHA,
+      PngColorType.RGBA,
+    ].includes(colorType) &&
+    ![8, 16].includes(bitDepth)
+  ) {
     throw new Error("Invalid bit depth for color type");
   }
 
@@ -278,7 +300,8 @@ export async function parsePng(
       const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as ArrayBuffer);
-        reader.onerror = () => reject(new Error("ファイルの読み込みに失敗しました"));
+        reader.onerror = () =>
+          reject(new Error("ファイルの読み込みに失敗しました"));
         reader.readAsArrayBuffer(file);
       });
 
@@ -348,8 +371,8 @@ export async function parsePng(
 
       // その他のチャンク情報を作成
       const otherChunks = chunks
-        .filter(chunk => chunk.type !== "IHDR")
-        .map(chunk => ({
+        .filter((chunk) => chunk.type !== "IHDR")
+        .map((chunk) => ({
           type: chunk.type,
           size: chunk.length,
           description: getChunkDescription(chunk.type),
@@ -366,7 +389,7 @@ export async function parsePng(
 
       for (const chunk of chunks) {
         const metadata = extractMetadataFromChunk(chunk);
-        
+
         if (metadata) {
           if ("keyword" in metadata) {
             // テキストメタデータ
@@ -391,7 +414,6 @@ export async function parsePng(
           otherChunks,
         },
       };
-
     } catch (error) {
       if (error && typeof error === "object" && "type" in error) {
         // AppError の場合

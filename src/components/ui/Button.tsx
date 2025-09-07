@@ -3,7 +3,8 @@
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** ボタンのバリアント */
   variant?: "default" | "primary" | "secondary" | "danger" | "ghost";
   /** ボタンのサイズ */
@@ -45,51 +46,42 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           // ベーススタイル
           "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:pointer-events-none disabled:opacity-50",
-          
+
           // バリアント
-          {
-            "bg-bg-secondary text-gray-900 border border-border hover:bg-bg-tertiary": variant === "default",
-            "bg-primary text-white hover:bg-primary/90": variant === "primary",
-            "bg-gray-100 text-gray-900 hover:bg-gray-200": variant === "secondary",
-            "bg-red-600 text-white hover:bg-red-700": variant === "danger",
-            "bg-transparent text-gray-700 hover:bg-bg-secondary": variant === "ghost",
-          },
-          
+          variant === "default" &&
+            "hover:bg-bg-tertiary border border-border bg-bg-secondary text-gray-900",
+          variant === "primary" && "bg-primary text-white hover:bg-primary/90",
+          variant === "secondary" &&
+            "bg-gray-100 text-gray-900 hover:bg-gray-200",
+          variant === "danger" && "bg-red-600 text-white hover:bg-red-700",
+          variant === "ghost" &&
+            "bg-transparent text-gray-700 hover:bg-bg-secondary",
+
           // サイズ
-          {
-            "h-8 px-3 text-sm": size === "sm",
-            "h-10 px-4 text-sm": size === "md",
-            "h-12 px-6 text-base": size === "lg",
-          },
-          
+          size === "sm" && "h-8 px-3 text-sm",
+          size === "md" && "h-10 px-4 text-sm",
+          size === "lg" && "h-12 px-6 text-base",
+
           // フルワイズ
           fullWidth && "w-full",
-          
+
           className
         )}
         disabled={isDisabled}
         {...props}
       >
-        {loading && (
-          <LoadingSpinner className="h-4 w-4" />
-        )}
-        
+        {loading && <LoadingSpinner className="h-4 w-4" />}
+
         {!loading && icon && iconPosition === "left" && (
-          <span className="flex-shrink-0">
-            {icon}
-          </span>
+          <span className="flex-shrink-0">{icon}</span>
         )}
-        
-        <span>
-          {loading && loadingText ? loadingText : children}
-        </span>
-        
+
+        <span>{loading && loadingText ? loadingText : children}</span>
+
         {!loading && icon && iconPosition === "right" && (
-          <span className="flex-shrink-0">
-            {icon}
-          </span>
+          <span className="flex-shrink-0">{icon}</span>
         )}
       </button>
     );

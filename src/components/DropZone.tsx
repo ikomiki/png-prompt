@@ -29,7 +29,7 @@ export function DropZone({
   const handleDragEnter = useCallback(
     (event: React.DragEvent) => {
       if (disabled) return;
-      
+
       event.preventDefault();
       event.stopPropagation();
       onDragStateChange(true);
@@ -40,7 +40,7 @@ export function DropZone({
   const handleDragOver = useCallback(
     (event: React.DragEvent) => {
       if (disabled) return;
-      
+
       event.preventDefault();
       event.stopPropagation();
     },
@@ -50,17 +50,17 @@ export function DropZone({
   const handleDragLeave = useCallback(
     (event: React.DragEvent) => {
       if (disabled) return;
-      
+
       event.preventDefault();
       event.stopPropagation();
-      
+
       // より正確な境界検出: 関連要素がドロップゾーン内にある場合は無視
       const relatedTarget = event.relatedTarget as Element;
-      
+
       if (relatedTarget && event.currentTarget.contains(relatedTarget)) {
         return;
       }
-      
+
       // ドロップゾーンから完全に離れた場合のみ状態をリセット
       onDragStateChange(false);
     },
@@ -70,17 +70,17 @@ export function DropZone({
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
       if (disabled) return;
-      
+
       event.preventDefault();
       event.stopPropagation();
-      
+
       onDragStateChange(false);
-      
+
       const files = event.dataTransfer.files;
       if (files && files.length > 0) {
         onDrop(files);
       } else {
-        onDrop([] as any); // For testing empty file lists
+        onDrop(new FileList()); // For testing empty file lists
       }
     },
     [disabled, onDragStateChange, onDrop]
@@ -95,16 +95,10 @@ export function DropZone({
       aria-describedby="drop-zone-description"
       className={cn(
         "relative rounded-lg border-2 border-dashed p-8 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-        {
-          // Dragging state
-          "border-primary bg-primary/5": isDragging && !disabled,
-          // Normal state
-          "border-border bg-bg-secondary": !isDragging && !disabled,
-          // Disabled state
-          "pointer-events-none opacity-50": disabled,
-          // Hover state (when not dragging and not disabled)
-          "hover:border-gray-400 hover:bg-gray-50": !isDragging && !disabled,
-        },
+        isDragging && !disabled && "border-primary bg-primary/5",
+        !isDragging && !disabled && "border-border bg-bg-secondary",
+        disabled && "pointer-events-none opacity-50",
+        !isDragging && !disabled && "hover:border-gray-400 hover:bg-gray-50",
         className
       )}
       onDragEnter={handleDragEnter}

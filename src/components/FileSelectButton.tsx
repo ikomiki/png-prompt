@@ -37,7 +37,7 @@ export function FileSelectButton({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      onFileSelect(files[0]);
+      onFileSelect(files![0]!);
     }
   };
 
@@ -69,7 +69,7 @@ export function FileSelectButton({
       >
         ファイルを選択
       </Button>
-      
+
       <input
         ref={fileInputRef}
         type="file"

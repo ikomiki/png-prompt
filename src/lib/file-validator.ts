@@ -55,10 +55,7 @@ export function validateFile(
   if (file.size === 0) {
     return {
       isValid: false,
-      error: createAppError(
-        ErrorType.CORRUPTED_FILE,
-        "ファイルが空です"
-      ),
+      error: createAppError(ErrorType.CORRUPTED_FILE, "ファイルが空です"),
     };
   }
 
@@ -74,7 +71,7 @@ export function verifyPngSignature(buffer: ArrayBuffer): boolean {
   }
 
   const header = new Uint8Array(buffer, 0, PNG_SIGNATURE.length);
-  
+
   for (let i = 0; i < PNG_SIGNATURE.length; i++) {
     if (header[i] !== PNG_SIGNATURE[i]) {
       return false;
@@ -89,21 +86,22 @@ export function verifyPngSignature(buffer: ArrayBuffer): boolean {
  */
 export function extractIHDRInfo(buffer: ArrayBuffer) {
   const dataView = new DataView(buffer);
-  
+
   // PNG signature (8 bytes) をスキップ
   let offset = 8;
-  
+
   // 最初のチャンク（IHDR）を読み取り
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const ihdrLength = dataView.getUint32(offset);
   offset += 4;
-  
+
   // チャンクタイプを確認 (IHDR = 0x49484452)
   const chunkType = dataView.getUint32(offset);
   if (chunkType !== 0x49484452) {
-    throw new Error('Invalid PNG: First chunk is not IHDR');
+    throw new Error("Invalid PNG: First chunk is not IHDR");
   }
   offset += 4;
-  
+
   // IHDR データを読み取り
   const width = dataView.getUint32(offset);
   offset += 4;
@@ -118,7 +116,7 @@ export function extractIHDRInfo(buffer: ArrayBuffer) {
   const filterMethod = dataView.getUint8(offset);
   offset += 1;
   const interlaceMethod = dataView.getUint8(offset);
-  
+
   return {
     width,
     height,
@@ -126,7 +124,7 @@ export function extractIHDRInfo(buffer: ArrayBuffer) {
     colorType,
     compressionMethod,
     filterMethod,
-    interlaceMethod
+    interlaceMethod,
   };
 }
 
@@ -136,36 +134,39 @@ export function extractIHDRInfo(buffer: ArrayBuffer) {
 export function extractBasicPngInfo(buffer: ArrayBuffer) {
   const dataView = new DataView(buffer);
   let offset = 8; // PNG signatureをスキップ
-  
+
   const ihdrInfo = extractIHDRInfo(buffer);
-  const textMetadata: Array<{keyword: string, text: string}> = [];
-  const otherChunks: Array<{type: string, size: number}> = [];
-  
+  const textMetadata: Array<{ keyword: string; text: string }> = [];
+  const otherChunks: Array<{ type: string; size: number }> = [];
+
   // 最初のIHDRチャンクをスキップ
   const ihdrLength = dataView.getUint32(offset);
   offset += 4 + 4 + ihdrLength + 4; // length + type + data + crc
-  
+
   // 他のチャンクを読み取り
-  while (offset < buffer.byteLength - 12) { // 少なくともIENDチャンクが必要
+  while (offset < buffer.byteLength - 12) {
+    // 少なくともIENDチャンクが必要
     try {
       const length = dataView.getUint32(offset);
       offset += 4;
-      
+
       // チャンクタイプを文字列として読み取り
       const typeBytes = new Uint8Array(buffer, offset, 4);
       const type = String.fromCharCode(...typeBytes);
       offset += 4;
-      
-      if (type === 'IEND') {
+
+      if (type === "IEND") {
         break; // ファイル終端
       }
-      
+
       // tEXtチャンクの場合、テキストメタデータを抽出
-      if (type === 'tEXt' && length > 0) {
+      if (type === "tEXt" && length > 0) {
         const textData = new Uint8Array(buffer, offset, length);
-        const nullIndex = textData.findIndex(byte => byte === 0);
+        const nullIndex = textData.findIndex((byte) => byte === 0);
         if (nullIndex !== -1) {
-          const keyword = String.fromCharCode(...textData.subarray(0, nullIndex));
+          const keyword = String.fromCharCode(
+            ...textData.subarray(0, nullIndex)
+          );
           const text = String.fromCharCode(...textData.subarray(nullIndex + 1));
           textMetadata.push({ keyword, text });
         }
@@ -173,18 +174,18 @@ export function extractBasicPngInfo(buffer: ArrayBuffer) {
         // その他のチャンク情報を記録
         otherChunks.push({ type, size: length });
       }
-      
+
       offset += length + 4; // data + crc
-    } catch (e) {
+    } catch {
       // チャンク読み取りエラーの場合は終了
       break;
     }
   }
-  
+
   return {
     basicInfo: ihdrInfo,
     textMetadata,
-    otherChunks
+    otherChunks,
   };
 }
 
@@ -230,7 +231,7 @@ export async function validatePngFile(
   if (opts.checkPngSignature) {
     try {
       const buffer = await readFileAsArrayBuffer(file);
-      
+
       if (!verifyPngSignature(buffer)) {
         return {
           isValid: false,

@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from "react";
 import { cn } from "@/lib/utils";
-import { AppError } from "@/types/png-metadata";
+import { AppError, ErrorType } from "@/types/png-metadata";
 import { validatePngFile } from "@/lib/file-validator";
 import { formatFileSize } from "@/lib/utils";
 import { FileSelectButton } from "./FileSelectButton";
@@ -37,11 +43,10 @@ export function FileUploader({
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-  
-  
+
   const [currentError, setCurrentError] = useState<AppError | null>(null);
   const isMountedRef = useRef(true);
-  
+
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -77,7 +82,7 @@ export function FileUploader({
         }
       } catch (error) {
         const errorObj = {
-          type: "PARSE_ERROR" as const,
+          type: ErrorType.PARSE_ERROR,
           message: "ファイル検証中にエラーが発生しました",
           details: error instanceof Error ? error.message : String(error),
         };
@@ -105,7 +110,7 @@ export function FileUploader({
     (files: FileList) => {
       if (files.length > 0) {
         // Take only the first file
-        const file = files[0];
+        const file = files[0]!;
         validateAndProcessFile(file);
       }
     },
@@ -116,7 +121,6 @@ export function FileUploader({
     setIsDragging(dragging);
   }, []);
 
-
   // 最大ファイルサイズ表示の最適化
   const formattedMaxSize = useMemo(
     () => formatFileSize(maxFileSize),
@@ -126,14 +130,10 @@ export function FileUploader({
   return (
     <div
       data-testid="file-uploader"
-      className={cn("w-full max-w-2xl mx-auto", className)}
+      className={cn("mx-auto w-full max-w-2xl", className)}
     >
       {/* スクリーンリーダー用のライブリージョン */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         {isValidating && "ファイルを検証中です"}
         {currentError && `エラー: ${currentError.message}`}
       </div>

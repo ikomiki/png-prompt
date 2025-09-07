@@ -69,9 +69,10 @@ export function formatFileSize(bytes: number): FormattedFileSize {
   for (const size of sizes) {
     if (bytes >= size.threshold) {
       const value = bytes / size.threshold;
-      const roundedValue = size.unit === ByteUnit.BYTE 
-        ? Math.round(value) 
-        : Math.round(value * 10) / 10;
+      const roundedValue =
+        size.unit === ByteUnit.BYTE
+          ? Math.round(value)
+          : Math.round(value * 10) / 10;
 
       return {
         value: roundedValue,
@@ -250,8 +251,8 @@ export function isSafeString(str: string): boolean {
     /on\w+\s*=/i,
     /<iframe/i,
   ];
-  
-  return !dangerousPatterns.some(pattern => pattern.test(str));
+
+  return !dangerousPatterns.some((pattern) => pattern.test(str));
 }
 
 /**
